@@ -17,7 +17,6 @@ that [here](https://github.com/BottleRocketStudios/rocket-fuel-framework-example
     - [Lifting off (Getting your first run)](#lifting-off-getting-your-first-run)
     - [Contributing](#contributing)
     - [Versioning](#versioning)
-    - [Authors](#authors)
     - [License](#license)
     - [Acknowledgments](#acknowledgments)
 
@@ -195,7 +194,7 @@ TLDR:
         - Real devices
     - Sauce Labs/other (remote execution)
 - Gradle command line (optional)
-- Github account and agree to the CLA (if you wish to contribute)
+- GitHub account and agree to the CLA (if you wish to contribute)
 - A desire to learn and grow while also making your life easier and writing amazing automation tests
 
 While we have run this framework on many different systems over the years, due to being a previously internal tool,
