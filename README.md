@@ -19,6 +19,7 @@ that [here](https://github.com/BottleRocketStudios/rocket-fuel-framework-example
     - [Versioning](#versioning)
     - [License](#license)
     - [Acknowledgments](#acknowledgments)
+    - [Locator Strategies](#locator-strategies)
 
 ## What is the Rocket Fuel Framework?
 
