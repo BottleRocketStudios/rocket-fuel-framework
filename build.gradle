@@ -1,0 +1,159 @@
+//This build file was created mainly through an existing project and help from Eric Lin
+//proguard configuration elements added by Aven Stewart 07/09/19
+import proguard.gradle.ProGuardTask
+
+// This buildscript block only interacts with the proguard obfuscation tasks
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.1.1'
+    }
+}
+
+plugins {
+    id 'groovy'
+    id 'idea'
+    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group 'com.bottlerocket.automation'
+version '3.2.0-SNAPSHOT'
+
+
+sourceCompatibility = 15
+
+def javaName = archivesBaseName + '-java'
+def fullJavaName = archivesBaseName + '-full'
+
+java {
+    //withJavadocJar() to be re-enabled at such time when our built in documentation is improved
+    withSourcesJar()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+
+repositories {
+    maven {
+        name = "Synology"
+
+        def baseUrl = "file://Volumes/Builds/qa/automation/maven-repository"
+        def releasesRepoUrl = "$baseUrl/releases"
+        def snapshotsRepoUrl = "$baseUrl/snapshots"
+        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+    }
+}
+
+
+/* we can re-enable this once we improve built in documentation
+
+javadoc {
+    if(JavaVersion.current().isJava11Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+*/
+
+test {
+    useTestNG()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+        exceptionFormat = 'full'
+
+    }
+}
+
+
+dependencies {
+
+    implementation 'org.codehaus.groovy:groovy-all:3.0.9'
+    implementation group: 'org.testng', name: 'testng', version: '7.7.1'
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.2.2'
+    implementation 'io.appium:java-client:8.1.1'
+    implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.14'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.5'
+    implementation group: 'com.aventstack', name: 'extentreports', version: '4.0.5'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.9.0'
+    implementation 'org.slf4j:slf4j-api:1.7.13'
+    // this dependency adds the capability for streaming in large excel files and works with apache poi
+    implementation group: 'com.monitorjbl', name: 'xlsx-streamer', version: '2.1.0'
+
+    // mockloader
+    implementation group: 'org.mock-server', name: 'mockserver-core', version: '5.6.1'
+    implementation group: 'org.mock-server', name: 'mockserver-client-java', version: '5.6.1'
+    implementation group: 'org.mock-server', name: 'mockserver-netty', version: '5.6.1'
+    implementation group: 'io.appium', name: 'mitmproxy-java', version: '2.0.1'
+    implementation 'com.mashape.unirest:unirest-java:1.4.9'
+
+    //db connections
+    implementation group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.9'
+
+
+    //implementation 'org.testng:testng:6.8.8'
+
+    // retrofit - typesafe HTTP calls
+    implementation 'com.squareup.retrofit2:retrofit:2.8.1'
+    implementation 'com.squareup.retrofit2:converter-jackson:2.8.1'
+    implementation "com.squareup.okhttp3:logging-interceptor:3.14.7"
+}
+
+/**
+ * OBFUSCATION TASKS
+ */
+
+jar {
+    baseName = javaName
+    manifest {
+        attributes "Implementation-Title": javaName
+        attributes "Implementation-Version": version
+    }
+
+}
+
+task fullJavaJar(type: Jar) {
+    baseName = fullJavaName
+    manifest {
+        attributes "Implementation-Title": baseName
+        attributes "Implementation-Version": version
+    }
+    from sourceSets.main.output
+    artifacts {
+        archives fullJavaJar
+    }
+}
+
+task proguard(type: ProGuardTask) {
+    configuration 'proguard/proguard.txt'
+    injars "$buildDir/libs/${fullJavaName}-${version}.jar"
+    outjars "$buildDir/libs/${fullJavaName}-${version}-EXT.jar"
+
+    "ls ${System.getProperty('user.dir')}/.gradle/caches/modules-2/files-2.1/*/*/*/*/*.jar > $buildDir/proguard/libfiles.txt".execute()
+    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+
+    File file = new File("proguard/libfiles.txt")
+    def line, noOfLines = 0;
+    file.withReader { reader ->
+        while ((line = reader.readLine()) != null) {
+            libraryjars "${line}"
+            noOfLines++
+        }
+    }
+}
+
+task obfuscate(dependsOn: tasks.withType(ProGuardTask)) {}

@@ -1,0 +1,10 @@
+[
+  {
+    "httpRequest": {
+      "path": "/api/address"
+    },
+    "httpResponse": {
+      "body": "data"
+    }
+  }
+]

@@ -1,0 +1,13 @@
+-libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)
+-libraryjars <java.home>/jmods/java.desktop.jmod(!**.jar;!module-info.class)
+
+-printmapping out.map
+
+-keep class com.bottlerocket.bash.* {
+    native <methods>;
+}
+
+-keep public class com.bottlerocket.utils.* {
+    public protected *;
+}
+
