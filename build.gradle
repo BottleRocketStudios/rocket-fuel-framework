@@ -22,6 +22,7 @@ plugins {
 
 group 'com.bottlerocket.automation'
 version '3.2.0-SNAPSHOT'
+def artifact = 'automation_library'
 
 
 sourceCompatibility = 15
@@ -46,18 +47,27 @@ repositories {
     mavenCentral()
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            artifactId = artifact
+            version = version
 
-repositories {
-    maven {
-        name = "Synology"
+            from components.java
 
-        def baseUrl = "file://Volumes/Builds/qa/automation/maven-repository"
-        def releasesRepoUrl = "$baseUrl/releases"
-        def snapshotsRepoUrl = "$baseUrl/snapshots"
-        url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            pom {
+                developers {
+                    developer {
+                        id = 'FordArnett'
+                        name = 'Ford Arnett'
+                        email = 'ford.arnett@bottlerocketstudios.com'
+                    }
+                }
+            }
+        }
     }
 }
-
 
 /* we can re-enable this once we improve built in documentation
 
