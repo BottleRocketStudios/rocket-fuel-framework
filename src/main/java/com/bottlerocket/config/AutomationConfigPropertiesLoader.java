@@ -5,12 +5,8 @@ import com.bottlerocket.utils.Logger;
 import org.openqa.selenium.InvalidArgumentException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 
 /**
  * TODO refactor so this class is a little more streamlined
@@ -34,15 +30,21 @@ public class AutomationConfigPropertiesLoader {
 
 
     public AutomationConfigProperties loadAutomationConfigurations(DesiredCapabilities capabilities) throws Exception {
-        AutomationConfigProperties configProperties = new AutomationConfigProperties();
-        configProperties.capabilities = capabilities;
 
-        Properties projectLevelProperties = loadFromPropertiesFile(configProperties);
+        //create AutomationConfigProperties and set capabilities
+        AutomationConfigProperties configProperties = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE );
+
+        //Load secret level properties
+        Properties secretProperties = loadSecretsFileProperties(configProperties);
+
+        //Load platform level properties
+        Properties platformLevelProperties = loadPlatformLevelProperties(configProperties);
 
         //Now that we know platform we can create our configurator
         ConfigPropertiesBinder binder = ConfigPropertiesBinder.binderFactory(configProperties);
 
-        binder.loadConfigVariablesFromFile(projectLevelProperties, configProperties);
+        binder.loadConfigVariablesFromFile(platformLevelProperties, configProperties);
+        binder.loadUndefinedVariablesFromFile(configProperties.secretProperties, UndefinedConfig.PROPERTY_FILE_SECRET_KEY, secretProperties);
 
         if (configProperties.remote) {
             //bind remote
@@ -52,6 +54,8 @@ public class AutomationConfigPropertiesLoader {
                 Logger.log("Unable to determine remote type. Please provide a REMOTE_TYPE value in the project level file");
             } else {
                 Logger.log("Running tests on remote system " + configProperties.remoteType);
+                //set remote URL using secrets property
+                setRemoteDriverUrl(configProperties);
                 binder.loadRemoteVariablesFromFile(remoteProperties, configProperties);
             }
         } else {
@@ -65,63 +69,60 @@ public class AutomationConfigPropertiesLoader {
     }
 
 
-    /**
-     * Load properties from the properties file to later be read.
-     * Also, this sets the general properties that are not platform specific. For example the project name, platform to run, and remote/local run type.
-     * These are required to set up the rest of the properties
-     *
-     * @return the loaded properties
-     * @throws Exception if there was an issue reading from the properties file
-     */
-    public Properties loadFromPropertiesFile(AutomationConfigProperties configProperties) throws Exception {
-
-        loadProjectLevelProperties(configProperties);
-
-        return loadPlatformLevelProperties(configProperties);
-
-    }
 
     private AutomationConfigPropertiesLoader createConfigurator() {
         return null;
     }
 
-    private static void loadProjectLevelProperties(AutomationConfigProperties properties) throws IOException {
-        Properties projectLevelProperty = new Properties();
+    private Properties loadSecretsFileProperties(AutomationConfigProperties configProperties)throws IOException {
+        Properties secretLevelProperty = new Properties();
+        String gitHubTrigger = System.getProperty("gitHubTrigger");
 
-        //load the operating system type
-        InputStream projectLevelPropStream = new FileInputStream(PROJECT_LEVEL_PROPERTY_FILE);
-        projectLevelProperty.load(projectLevelPropStream);
+        //check to see if test run from trigger from gitHub and if so set the secretProperties to use base64 encoded string from gitHub command line parameters
+        if (gitHubTrigger != null && gitHubTrigger.equalsIgnoreCase("true")) {
+            String secretProperties = System.getProperty("secretFile");
 
-        //Project name must be set before any gradle values.
-        properties.projectName = projectLevelProperty.getProperty("PROJECT_NAME");
-        properties.remote = Boolean.parseBoolean(projectLevelProperty.getProperty("REMOTE"));
-        properties.remoteType = projectLevelProperty.getProperty("REMOTE_TYPE");
-
-        if (properties.projectName == null || properties.projectName.isEmpty()) {
-            Logger.log("Project name not found in joint config properties file. Unable to use gradle values");
+            secretLevelProperty =  loadSecretPropertiesFromString(secretProperties);
+        } else {
+            try {
+                //if the test run was triggered locally, use secrets file with SECRETS_FILE_PATH in appconfig.properties
+                secretLevelProperty.load(new FileInputStream(configProperties.secretsFilePath));
+            } catch(Exception e) {
+                Logger.log("Error reading Secrets File ensure your secret properties file is created and the path SECRETS_FILE_PATH is in your appconfig.properties file");
+                throw e;
+            }
         }
 
-        //Try to get platform from gradle values
-        // FIXME: why is the Gradle key "operating system" if we are using this to pick the driver? For example, flutterDriver could be running on Android, iOS, etc.
-        //  Why not pass to a property called "platformName" or "driverName" ?
-        properties.platformName = System.getProperty(ConfigPropertiesBinder.gradleKey("operatingsystem", properties.projectName));
-        if (properties.platformName == null || properties.platformName.isEmpty()) {
-            //Gradle not set, use files
-            Logger.log("No gradle value given for the operating system, defaulting to config files.");
-            properties.platformName = projectLevelProperty.getProperty("PLATFORM_NAME");
+        return secretLevelProperty;
+    }
+
+    private static Properties loadSecretPropertiesFromString(String base64EncodedFileString) throws IOException {
+        Properties properties = new Properties();
+
+        //decode your base64 String encoded properties file and load the file contents to a new Properties object
+        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedFileString);
+        try(ByteArrayInputStream bis = new ByteArrayInputStream(decodedBytes)) {
+            properties.load(bis);
+        } catch(IOException e) {
+            Logger.log("Error decoding Secrets Property file");
+            throw(e);
         }
+        return properties;
+    }
+
+    private void setRemoteDriverUrl (AutomationConfigProperties properties){
 
         //Attempts to find and set the remoteDriverURL based upon the provided 'remote type' value
         if (properties.remote) {
-            Optional<String> resultURL = projectLevelProperty.keySet().stream()
-                    .map(obj -> (String) obj)
-                    .filter(str -> str.toLowerCase().contains(properties.remoteType))
-                    .findFirst();
+            Optional<String> resultURL = null;
+            if (properties.remoteType.equalsIgnoreCase("sauce")) {
+                resultURL = Optional.ofNullable(properties.getProperty("SECRET_VAR_SAUCE_REMOTE_URL"));
+            }
 
-            if (resultURL.isPresent()) {
-                properties.remoteDriverURL = projectLevelProperty.getProperty(resultURL.get());
+            if (resultURL.isPresent() && !resultURL.get().equalsIgnoreCase(properties.getPropertyErrorMessage)) {
+                properties.remoteDriverURL = resultURL.get();
             } else {
-                Logger.log("Unable to determine remote URL. Please provide a remote type specific REMOTE_URL key and value in project level file.");
+                Logger.log("Unable to determine remote URL. Please provide a remote type specific REMOTE_URL key and value in secrets file.");
             }
         }
     }
