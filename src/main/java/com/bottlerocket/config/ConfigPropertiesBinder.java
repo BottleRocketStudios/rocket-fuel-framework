@@ -6,9 +6,7 @@ import io.appium.java_client.remote.MobileCapabilityType;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Bind the properties given to {@link AutomationConfigProperties}
@@ -63,15 +61,8 @@ public class ConfigPropertiesBinder {
         configProperties.qaEnvironment = rawProperties.getProperty("QAENVIRONMENT", configProperties.qaEnvironment);
         //Web -- any reason for this to be in a separate file? not sure it matters as long as user knows how to configure properly
         configProperties.driverPath = rawProperties.getProperty("DRIVER_PATH", "");
-
-
         //If there are any keys with UndefinedConfig.PROPERTY_FILE_EXTRA_SYSTEM_KEY put them in the system parameters
-        rawProperties.keySet().stream()
-                .filter(x -> x.toString().toLowerCase().contains(UndefinedConfig.PROPERTY_FILE_EXTRA_SYSTEM_KEY))
-                .forEach(x -> configProperties.extraSystemParameters.add(
-                        UndefinedConfig.undefinedSystemParameter(x.toString(), rawProperties.getProperty(x.toString())))
-                );
-
+        loadUndefinedVariablesFromFile(configProperties.extraSystemParameters, UndefinedConfig.PROPERTY_FILE_EXTRA_SYSTEM_KEY, rawProperties);
         /*
           Capabilities
          */
@@ -118,11 +109,7 @@ public class ConfigPropertiesBinder {
 
         
         //If there are any keys with UndefinedConfig.PROPERTY_FILE_EXTRA_CAPABILITY_KEY, put them in the capabilities
-        rawProperties.keySet().stream()
-                .filter(x -> x.toString().toLowerCase().contains(UndefinedConfig.PROPERTY_FILE_EXTRA_CAPABILITY_KEY))
-                .forEach(x -> configProperties.extraCapabilities.add(
-                        UndefinedConfig.undefinedCapability(x.toString(), rawProperties.getProperty(x.toString())))
-                );
+        loadUndefinedVariablesFromFile(configProperties.extraCapabilities, UndefinedConfig.PROPERTY_FILE_EXTRA_CAPABILITY_KEY, rawProperties);
 
 
         if (configProperties.useGradleValues) {
@@ -130,6 +117,15 @@ public class ConfigPropertiesBinder {
             loadGradleValues(configProperties);
         }
 
+
+    }
+
+    public void loadUndefinedVariablesFromFile(List frameWorkPropertyList, String property, Properties rawProperties) {
+        rawProperties.keySet().stream()
+                .filter(x -> x.toString().toLowerCase().contains(property))
+                .forEach(x -> frameWorkPropertyList.add(
+                        UndefinedConfig.getUndefinedConfig(property, x.toString(), rawProperties.getProperty(x.toString())))
+                );
 
     }
 
@@ -151,15 +147,11 @@ public class ConfigPropertiesBinder {
                                     remoteProperties.getProperty(x.toString()),
                                     delimiter)
                     ));
+            loadUndefinedVariablesFromFile(configProperties.remoteExtraCapabilities, UndefinedConfig.PROPERTY_FILE_SAUCE_CAPABILITY_KEY, remoteProperties);
 
             //set Sauce Labs options
-            remoteProperties.keySet().stream()
-                    .filter(x -> x.toString().toLowerCase().contains(UndefinedConfig.PROPERTY_FILE_SAUCE_OPTION_KEY))
-                    .forEach(x -> configProperties.sauceOptions.add(
-                            UndefinedConfig.getSauceOption(
-                                    remoteProperties.getProperty(x.toString()),
-                                    delimiter)
-                    ));
+            loadUndefinedVariablesFromFile(configProperties.sauceOptions, UndefinedConfig.PROPERTY_FILE_SAUCE_OPTION_KEY, remoteProperties);
+
         } else {
             Logger.log("Remote execution type not recognized. This is either an error in the config files or this hasn't been added yet.");
         }
@@ -169,7 +161,6 @@ public class ConfigPropertiesBinder {
      * Takes the configProperties from the ConfigPropertiesBinder instance and puts the appropriate values in a
      * new DesiredCapabilities. This is generally then used to launch a selenium or appium instance.
      *
-     * @return DesiredCapabilities
      */
     public void setCapabilities(AutomationConfigProperties configProperties) {
 
