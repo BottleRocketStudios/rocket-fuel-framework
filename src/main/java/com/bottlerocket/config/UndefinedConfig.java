@@ -15,6 +15,7 @@ public class UndefinedConfig {
     public static final String PROPERTY_FILE_EXTRA_SYSTEM_KEY = "extra_system";
     public static final String PROPERTY_FILE_SAUCE_CAPABILITY_KEY = "sauce_capability";
     public static final String PROPERTY_FILE_SAUCE_OPTION_KEY = "sauce_option";
+    public static final String PROPERTY_FILE_SECRET_KEY = "secret_var";
 
     //For selenium/appium capabilities
     public String capabilityName;
@@ -23,6 +24,10 @@ public class UndefinedConfig {
     //System values
     public String systemKey;
     public String systemValue;
+
+    //Secret values
+    public String secretKey;
+    public String secretValue;
 
     //Sauce options
     public String sauceCapabilityKey;
@@ -61,6 +66,14 @@ public class UndefinedConfig {
         return config;
     }
 
+    public static UndefinedConfig undefinedSecretVar(String secretKey, String secretValue) {
+        //key doesn't necessarily need to be stripped off here since this is for internal use only.
+        UndefinedConfig config = new UndefinedConfig();
+        config.secretKey = secretKey;
+        config.secretValue = secretValue;
+        return config;
+    }
+
 
     public static UndefinedConfig sauceOption(String sauceOptionKey, String sauceOptionValue) {
         UndefinedConfig config = new UndefinedConfig();
@@ -80,6 +93,29 @@ public class UndefinedConfig {
 
 
         return config;
+    }
+
+    public static UndefinedConfig getUndefinedConfig(String configType, String key, String value) {
+        UndefinedConfig undefinedConfig = new UndefinedConfig();
+
+        switch (configType) {
+            case PROPERTY_FILE_EXTRA_CAPABILITY_KEY -> {
+                return undefinedCapability(key, value);
+            }
+            case PROPERTY_FILE_EXTRA_SYSTEM_KEY -> {
+                return undefinedSystemParameter(key, value);
+            }
+            case PROPERTY_FILE_SECRET_KEY -> {
+                return undefinedSecretVar(key, value);
+            }
+            case PROPERTY_FILE_SAUCE_CAPABILITY_KEY -> {
+                return sauceCapability(key, value);
+            }
+            case PROPERTY_FILE_SAUCE_OPTION_KEY -> {
+                return sauceOption(key, value);
+            }
+        }
+        return undefinedConfig;
     }
 
     /**
