@@ -6,13 +6,16 @@ import com.bottlerocket.webdriverwrapper.ExpectedConditionsWrapper;
 import com.bottlerocket.webdriverwrapper.WebDriverWrapper;
 import io.appium.java_client.AppiumBy;
 import org.openqa.selenium.*;
+import org.openqa.selenium.remote.*;
 import org.openqa.selenium.support.locators.RelativeLocator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.*;
 import java.util.List;
 
 import static com.bottlerocket.frameworkTests.SauceLabsTestRunner.*;
+import static com.bottlerocket.frameworkTests.TestSwipeMethods.PROJECT_LEVEL_PROPERTY_FILE;
 
 public class TestGetElementBy {
 
@@ -22,10 +25,11 @@ public class TestGetElementBy {
     String sauceLabsURL = "https://your-url";
     SauceLabsTestRunner runner = new SauceLabsTestRunner(sauceUsername, sauceLabsURL);
 
-    private AutomationConfigProperties setupWebTestConfig(String projectName, int buildNumber, String sauceLabsURL, int globalWait) {
+    private AutomationConfigProperties setupWebTestConfig(String projectName, int buildNumber, String sauceLabsURL, int globalWait) throws IOException {
 
         // set up minimal project-level properties
-        AutomationConfigProperties webTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties webTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         webTestConfig.projectName = projectName;
         webTestConfig.appiumVersion = "1.22.2";
         webTestConfig.globalWait = globalWait;
@@ -41,7 +45,7 @@ public class TestGetElementBy {
     }
 
     @Test
-    public void testImplicitWaitGetElementByFunctions() {
+    public void testImplicitWaitGetElementByFunctions() throws IOException {
         WebDriverWrapper driverWrapper;
         StringBuilder testResults = new StringBuilder();
 
@@ -117,7 +121,7 @@ public class TestGetElementBy {
     }
 
     @Test
-    public void testExplicitWaitGetElementByFunctions() {
+    public void testExplicitWaitGetElementByFunctions() throws IOException {
         WebDriverWrapper driverWrapper;
         StringBuilder testResults = new StringBuilder();
 
@@ -198,7 +202,7 @@ public class TestGetElementBy {
     }
 
     @Test
-    public void testSelenium4RelativeLocators() {
+    public void testSelenium4RelativeLocators() throws IOException {
         WebDriverWrapper driverWrapper;
         StringBuilder testResults = new StringBuilder();
 
@@ -285,11 +289,12 @@ public class TestGetElementBy {
 
     // TODO: make test using webpage accessibility IDs (such as ARIA)
     @Test(enabled = false)
-    public void testFindByAccessibilityIdOnWeb() {
+    public void testFindByAccessibilityIdOnWeb() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties webTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties webTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         webTestConfig.projectName = "testAccessibilityIdsOnWeb";
         webTestConfig.appiumVersion = "1.22.2";
         webTestConfig.globalWait = 15;
@@ -320,11 +325,12 @@ public class TestGetElementBy {
 
     // TODO: make test using Android accessibility IDs (such as content-desc)
     @Test(enabled = false)
-    public void testFindByAccessibilityIdOnAndroid() {
+    public void testFindByAccessibilityIdOnAndroid() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         androidTestConfig.projectName = "testFindByAccessibilityIdOnAndroid";
         androidTestConfig.appiumVersion = "1.22.2";
         androidTestConfig.globalWait = 15;
@@ -351,11 +357,12 @@ public class TestGetElementBy {
     }
 
     @Test
-    public void testFindByAccessibilityIdOnIos() {
+    public void testFindByAccessibilityIdOnIos() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties iosTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties iosTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         iosTestConfig.projectName = "testIosAppOnSauceLabs";
         iosTestConfig.appiumVersion = "1.22.2";
         iosTestConfig.globalWait = 15;

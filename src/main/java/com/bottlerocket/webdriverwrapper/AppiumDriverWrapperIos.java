@@ -320,6 +320,11 @@ public class AppiumDriverWrapperIos extends AppiumDriverWrapper {
         driver.activateApp(bundleId);
     }
 
+    public void terminateApp(String bundleId) {
+        driver.terminateApp(bundleId);
+
+    }
+
     @Override
     public void startRecording() {
         driver.startRecordingScreen();

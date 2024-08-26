@@ -5,15 +5,20 @@ import com.bottlerocket.utils.WebElementUtils;
 import com.bottlerocket.webdriverwrapper.AppiumDriverWrapper;
 import com.bottlerocket.utils.SwipeUtils;
 import org.openqa.selenium.*;
+import org.openqa.selenium.remote.*;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.*;
+
+import static com.bottlerocket.config.AutomationConfigPropertiesLoader.PROPERTIES_DIRECTORY;
 import static com.bottlerocket.frameworkTests.SauceLabsTestRunner.*;
 
 public class TestSwipeMethods {
     AppiumDriverWrapper driverWrapper;
+    public static final String PROJECT_LEVEL_PROPERTY_FILE = PROPERTIES_DIRECTORY + "app-config.properties";
 
     @BeforeMethod(onlyForGroups = {"testSwipe"})
     public void setup() {
@@ -35,7 +40,7 @@ public class TestSwipeMethods {
     SauceLabsTestRunner runner = new SauceLabsTestRunner(sauceUsername, sauceLabsOnDemandUrl);
 
     @Test(groups = {"testSwipe"})
-    public void testBRFrameworkSwipeAndroid() {
+    public void testBRFrameworkSwipeAndroid() throws IOException {
 
 //        Appium emulator capabilities downloaded from SauceLabs platform configurator
 //        {
@@ -70,8 +75,9 @@ public class TestSwipeMethods {
 //        URL url = new URL("https://ondemand.us-west-1.saucelabs.com:443/wd/hub");
 //        AndroidDriver driver = new AndroidDriver(url, caps);
 
+        DesiredCapabilities capabilities = new DesiredCapabilities();
         // set up minimal project-level properties
-        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties();
+        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         androidTestConfig.projectName = "testBRFrameworkTapAndSwipeAndroid";
         androidTestConfig.appiumVersion = "1.22.3";
         androidTestConfig.globalWait = 15;
@@ -142,7 +148,7 @@ public class TestSwipeMethods {
     }
 
     @Test
-    public void testBRFrameworkSwipeIos() {
+    public void testBRFrameworkSwipeIos() throws IOException {
 
         // Appium iOS simulator capabilities downloaded from SauceLabs platform configurator
 //        MutableCapabilities caps = new MutableCapabilities();
@@ -161,7 +167,9 @@ public class TestSwipeMethods {
 //        IOSDriver driver = new IOSDriver(url, caps);
 
         // set up minimal project-level properties
-        AutomationConfigProperties iosTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        // set up minimal project-level properties
+        AutomationConfigProperties iosTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         iosTestConfig.projectName = "testBRFrameworkTapAndSwipeIos";
         iosTestConfig.appiumVersion = "1.22.3";
         iosTestConfig.globalWait = 15;
