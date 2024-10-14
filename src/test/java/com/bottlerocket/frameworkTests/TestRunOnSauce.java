@@ -11,8 +11,11 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.bottlerocket.frameworkTests.TestSwipeMethods.PROJECT_LEVEL_PROPERTY_FILE;
 
 /**
  * Created by ford.arnett on 3/10/23
@@ -32,11 +35,12 @@ public class TestRunOnSauce {
 
 
     @Test
-    public void testWebDriverWrapperRunsOnSauceLabs() {
+    public void testWebDriverWrapperRunsOnSauceLabs() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties webTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties webTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         webTestConfig.projectName = "testWebpageOnSauceLabs";
         webTestConfig.appiumVersion = "1.22.2";
         webTestConfig.globalWait = 15;
@@ -64,11 +68,12 @@ public class TestRunOnSauce {
     }
 
     @Test
-    public void testAndroidAppOnSauce() {
+    public void testAndroidAppOnSauce() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         androidTestConfig.projectName = "testAndroidAppOnSauceLabs";
         androidTestConfig.appiumVersion = "1.22.2";
         androidTestConfig.globalWait = 15;
@@ -93,11 +98,12 @@ public class TestRunOnSauce {
     }
 
     @Test
-    public void testMultiAndroidAppOnSauce() {
+    public void testMultiAndroidAppOnSauce() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties androidTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
         androidTestConfig.projectName = "testAndroidAppOnSauceLabs";
         androidTestConfig.appiumVersion = "1.22.2";
         androidTestConfig.globalWait = 15;
@@ -124,11 +130,13 @@ public class TestRunOnSauce {
     }
 
     @Test
-    public void testIosAppOnSauce() {
+    public void testIosAppOnSauce() throws IOException {
         WebDriverWrapper driverWrapper;
 
         // set up minimal project-level properties
-        AutomationConfigProperties iosTestConfig = new AutomationConfigProperties();
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        AutomationConfigProperties iosTestConfig = new AutomationConfigProperties(capabilities, PROJECT_LEVEL_PROPERTY_FILE);
+
         iosTestConfig.projectName = "testIosAppOnSauceLabs";
         iosTestConfig.appiumVersion = "1.22.2";
         iosTestConfig.globalWait = 15;
