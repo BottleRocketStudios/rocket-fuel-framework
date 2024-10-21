@@ -132,7 +132,7 @@ public class AutomationConfigPropertiesLoader {
                 AUTOMATION_CONFIG_ANDROID_PROPERTIES_FILE,
                 AUTOMATION_CONFIG_WEB_PROPERTIES_FILE);
 
-        return loadPropertiesForPlatform(configProperties.platformName, propertiesFilesNames);
+        return loadPropertiesForPlatform(configProperties.platformType, propertiesFilesNames);
     }
 
     /**
@@ -161,16 +161,16 @@ public class AutomationConfigPropertiesLoader {
                 AUTOMATION_CONFIG_SAUCE_LABS_IOS_PROPERTIES_FILE,
                 AUTOMATION_CONFIG_SAUCE_LABS_WEB_PROPERTIES_FILE);
 
-        return loadPropertiesForPlatform(configProperties.platformName, propertiesFilesNames);
+        return loadPropertiesForPlatform(configProperties.platformType, propertiesFilesNames);
     }
 
     public static boolean isSauceLabs(String remoteType) {
         return remoteType.replaceAll(" ", "").equalsIgnoreCase("sauce") || remoteType.replaceAll(" ", "").equalsIgnoreCase("saucelabs");
     }
 
-    private Properties loadPropertiesForPlatform(String platformName, List<String> propertiesFilesNames) throws IOException {
+    private Properties loadPropertiesForPlatform(String platformType, List<String> propertiesFilesNames) throws IOException {
         String filePath = propertiesFilesNames.stream()
-                .filter(x -> x.contains(platformName.toLowerCase()))
+                .filter(x -> x.contains(platformType.toLowerCase()))
                 .findFirst()
                 .orElseThrow(() -> new InvalidArgumentException("Unrecognized platform provided by Properties file: " + PROJECT_LEVEL_PROPERTY_FILE));
 

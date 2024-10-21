@@ -18,11 +18,11 @@ public class ConfigPropertiesBinder {
     public static ConfigPropertiesBinder binderFactory(AutomationConfigProperties properties) {
         ConfigPropertiesBinder binder = null;
 
-        if (properties.isAndroid() || properties.isAndroidTablet()) {
+        if (properties.platFormTypeIsAndroid() || properties.platFormTypeIsAndroidTablet()) {
             binder = new ConfigPropertiesBinderAndroid();
-        } else if (properties.isIos() || properties.isIpad()) {
+        } else if (properties.platFormTypeIsIos() || properties.platFormTypeIsIpad()) {
             binder = new ConfigPropertiesBinderIos();
-        } else if (properties.isWeb()) {
+        } else if (properties.platFormTypeIsWeb()) {
             binder = new ConfigPropertiesBinderWeb();
         }
 
@@ -185,8 +185,8 @@ public class ConfigPropertiesBinder {
         if (configProperties.isWeb()) {
             //FIXME: These values should not be hard coded, but instead should be controlled by config file
             ChromeOptions browserOptions = new ChromeOptions();
-            browserOptions.setCapability("platformName", "macOS 12");
-            browserOptions.setCapability("browserVersion", "latest");
+            browserOptions.setCapability("platformName", configProperties.platformName);
+            browserOptions.setCapability("browserVersion", configProperties.getProperty("BROWSER_VERSION"));
             configProperties.capabilities.merge(browserOptions);
         } else {
             // FIXME: Appium 2 does not support fullReset
