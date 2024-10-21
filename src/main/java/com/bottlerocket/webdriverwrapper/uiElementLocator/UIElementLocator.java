@@ -162,7 +162,7 @@ public class UIElementLocator {
             testPlatform = TestPlatform.FLUTTER;
         } else if (platformName.trim().equalsIgnoreCase("windows")) {
             testPlatform = TestPlatform.WINDOWS;
-        } else if (platformName.trim().equalsIgnoreCase("macOS")) {
+        } else if (platformName.trim().equalsIgnoreCase("macOS") || platformName.trim().equalsIgnoreCase("mac")) {
             testPlatform = TestPlatform.MACOS;
         } else {
             throw new NotImplementedException("UIElementLocator does not yet support this test platform.");

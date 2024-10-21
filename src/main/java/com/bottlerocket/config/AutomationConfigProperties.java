@@ -24,6 +24,7 @@ public class AutomationConfigProperties {
      */
     public String appPath;
     public String appiumVersion;
+    public String platformType;
     public String platformName;
     public String platformVersion;
     public String deviceName;
@@ -166,10 +167,10 @@ public class AutomationConfigProperties {
         // FIXME: why is the Gradle key "operating system" if we are using th is to pick the driver? For example, flutterDriver could be running on Android, iOS, etc.
         //  Why not pass to a property called "platformName" or "driverName" ?
         platformName = System.getProperty(ConfigPropertiesBinder.gradleKey("operatingsystem", projectName));
-        if (platformName == null || platformName.isEmpty()) {
+        if (platformType == null || platformType.isEmpty()) {
             //Gradle not set, use files
             Logger.log("No gradle value given for the operating system, defaulting to config files.");
-            platformName = preRegProperties.getProperty("PLATFORM_NAME");
+            platformType = preRegProperties.getProperty("PLATFORM_TYPE");
         }
     }
 
@@ -219,6 +220,15 @@ public class AutomationConfigProperties {
 
         return getPropertyErrorMessage;
     }
+
+    public boolean platFormTypeIsAndroid() { return platformType.equalsIgnoreCase("Android"); }
+    public boolean platFormTypeIsAndroidTablet() { return platformType.equalsIgnoreCase("androidTablet"); }
+    public boolean platFormTypeIsIos() { return platformType.equalsIgnoreCase("IOS"); }
+    public boolean platFormTypeIsIpad() { return platformType.equalsIgnoreCase("ipad"); }
+    public boolean platFormTypeIsFlutter() { return platformType.equalsIgnoreCase("Flutter"); }
+    public boolean platFormTypeIsWeb() { return platformType.equalsIgnoreCase("Web"); }
+    public boolean platFormTypeIsWindows() { return platformType.equalsIgnoreCase("Windows"); }
+    public boolean platFormTypeIsMac() { return platformType.equalsIgnoreCase("Mac") || platformType.equalsIgnoreCase("MacOs"); }
 
     public boolean isAndroid() {
         return platformName.equalsIgnoreCase("Android");
