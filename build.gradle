@@ -20,18 +20,16 @@ plugins {
     id 'maven-publish'
 }
 
-group 'com.bottlerocket.automation'
-version '3.2.3-SNAPSHOT'
+group = 'com.bottlerocket.automation'
+version = '3.2.4-SNAPSHOT'
 def artifact = 'automation_library'
 
-
-sourceCompatibility = 15
-
-def javaName = archivesBaseName + '-java'
-def fullJavaName = archivesBaseName + '-full'
+def archivesName = 'automation_library'
+def javaName = archivesName + '-java'
+def fullJavaName = archivesName + '-full'
 
 java {
-    //withJavadocJar() to be re-enabled at such time when our built in documentation is improved
+    sourceCompatibility = JavaVersion.VERSION_15
     withSourcesJar()
 }
 
@@ -138,36 +136,37 @@ dependencies {
  */
 
 jar {
-    baseName = javaName
+    archiveBaseName = javaName
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes "Implementation-Title": javaName
-        attributes "Implementation-Version": version
+        attributes "Implementation-Version": project.version
     }
-
 }
 
-task fullJavaJar(type: Jar) {
-    baseName = fullJavaName
+tasks.register('fullJavaJar', Jar) {
+    archiveBaseName = fullJavaName
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
-        attributes "Implementation-Title": baseName
-        attributes "Implementation-Version": version
+        attributes "Implementation-Title": archiveBaseName
+        attributes "Implementation-Version": project.version
     }
     from sourceSets.main.output
     artifacts {
-        archives fullJavaJar
+        archives tasks.named('fullJavaJar')
     }
 }
 
-task proguard(type: ProGuardTask) {
+tasks.register('proguard', ProGuardTask) {
     configuration 'proguard/proguard.txt'
-    injars "$buildDir/libs/${fullJavaName}-${version}.jar"
-    outjars "$buildDir/libs/${fullJavaName}-${version}-EXT.jar"
+    injars "$buildDir/libs/${fullJavaName}-${project.version}.jar"
+    outjars "$buildDir/libs/${fullJavaName}-${project.version}-EXT.jar"
 
     "ls ${System.getProperty('user.dir')}/.gradle/caches/modules-2/files-2.1/*/*/*/*/*.jar > $buildDir/proguard/libfiles.txt".execute()
     libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
 
     File file = new File("proguard/libfiles.txt")
-    def line, noOfLines = 0;
+    def line, noOfLines = 0
     file.withReader { reader ->
         while ((line = reader.readLine()) != null) {
             libraryjars "${line}"
@@ -176,4 +175,10 @@ task proguard(type: ProGuardTask) {
     }
 }
 
-task obfuscate(dependsOn: tasks.withType(ProGuardTask)) {}
+tasks.register('obfuscate') {
+    dependsOn tasks.withType(ProGuardTask)
+}
+
+tasks.named('sourcesJar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
