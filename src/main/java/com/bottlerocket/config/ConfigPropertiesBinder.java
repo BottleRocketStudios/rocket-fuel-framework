@@ -185,8 +185,20 @@ public class ConfigPropertiesBinder {
         if (configProperties.isWeb()) {
             //FIXME: These values should not be hard coded, but instead should be controlled by config file
             ChromeOptions browserOptions = new ChromeOptions();
-            browserOptions.setCapability("platformName", configProperties.platformName);
-            browserOptions.setCapability("browserVersion", configProperties.getProperty("BROWSER_VERSION"));
+            // PLATFORM_NAME is "web" internally, which is not a valid W3C platformName
+            // (windows|mac|linux|android|ios|any). Forwarding it makes a local driver reject
+            // the session with "No matching capabilities found", so only send real W3C values.
+            String w3cPlatform = configProperties.platformName;
+            if (w3cPlatform != null && !w3cPlatform.equalsIgnoreCase("web")) {
+                browserOptions.setCapability("platformName", w3cPlatform);
+            }
+            // getProperty() returns getPropertyErrorMessage (a human-readable sentence) on a
+            // miss rather than null; forwarding that as a version also breaks session creation.
+            String browserVersion = configProperties.getProperty("BROWSER_VERSION");
+            if (browserVersion != null && !browserVersion.isEmpty()
+                    && !browserVersion.equals(configProperties.getPropertyErrorMessage)) {
+                browserOptions.setCapability("browserVersion", browserVersion);
+            }
             configProperties.capabilities.merge(browserOptions);
         } else {
             // FIXME: Appium 2 does not support fullReset

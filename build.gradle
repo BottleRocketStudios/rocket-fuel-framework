@@ -35,13 +35,11 @@ java {
     withSourcesJar()
 }
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java'
-        }
-    }
-}
+// NOTE: previously re-declared `sourceSets.main.java.srcDir 'src/main/java'`, which is
+// already the Java plugin default. With the groovy plugin also applied, that made
+// sourceSets.main.allSource include the java tree twice, so sourcesJar packaged every
+// file twice (181 entries for 94 files). Gradle 6 silently overwrote the duplicates;
+// Gradle 7+ fails the build. Removed - the default srcDir is what we want.
 
 repositories {
     mavenCentral()
