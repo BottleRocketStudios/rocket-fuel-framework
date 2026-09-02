@@ -166,8 +166,17 @@ public class AutomationConfigProperties {
         //Try to get platform from gradle values
         // FIXME: why is the Gradle key "operating system" if we are using th is to pick the driver? For example, flutterDriver could be running on Android, iOS, etc.
         //  Why not pass to a property called "platformName" or "driverName" ?
-        platformName = System.getProperty(ConfigPropertiesBinder.gradleKey("operatingsystem", projectName));
-        if (platformType == null || platformType.isEmpty()) {
+        String gradlePlatform = System.getProperty(ConfigPropertiesBinder.gradleKey("operatingsystem", projectName));
+        if (gradlePlatform != null && !gradlePlatform.isEmpty()) {
+            //A platform passed on the command line has to drive platformType, not just platformName.
+            //platformType is what selects which *_config.properties file gets loaded, and platformName
+            //is overwritten from that file moments later regardless. Previously only platformName was
+            //assigned here while the guard below tested platformType, so -Poperatingsystem=<platform>
+            //silently did nothing and the run always fell back to the committed config files.
+            platformName = gradlePlatform;
+            platformType = gradlePlatform;
+            Logger.log("Using platform '" + gradlePlatform + "' passed in from gradle.");
+        } else {
             //Gradle not set, use files
             Logger.log("No gradle value given for the operating system, defaulting to config files.");
             platformType = preRegProperties.getProperty("PLATFORM_TYPE");
