@@ -84,12 +84,24 @@ public class AutomationConfigPropertiesLoader {
 
             secretLevelProperty =  loadSecretPropertiesFromString(secretProperties);
         } else {
-            try {
+            //A secrets file is optional - plenty of projects have no secrets at all. Previously an
+            //unset SECRETS_FILE_PATH reached FileInputStream(null) and died with a bare
+            //NullPointerException during config load, which is a hard failure to diagnose.
+            //Only treat this as an error when a path IS configured but cannot be read: that means
+            //the caller expected secrets, and continuing would fail later and more confusingly.
+            String secretsPath = configProperties.secretsFilePath;
+            if (secretsPath == null || secretsPath.trim().isEmpty()) {
+                Logger.log("No SECRETS_FILE_PATH set in appconfig.properties, continuing with no secrets. "
+                        + "Set it, and create the matching properties file, if your tests need SECRET_VAR_* values.");
+            } else {
                 //if the test run was triggered locally, use secrets file with SECRETS_FILE_PATH in appconfig.properties
-                secretLevelProperty.load(new FileInputStream(configProperties.secretsFilePath));
-            } catch(Exception e) {
-                Logger.log("Error reading Secrets File ensure your secret properties file is created and the path SECRETS_FILE_PATH is in your appconfig.properties file");
-                throw e;
+                try (FileInputStream secretsStream = new FileInputStream(secretsPath)) {
+                    secretLevelProperty.load(secretsStream);
+                } catch (Exception e) {
+                    Logger.log("Error reading Secrets File at '" + secretsPath + "'. Ensure the file exists and that "
+                            + "SECRETS_FILE_PATH in your appconfig.properties points at it.");
+                    throw e;
+                }
             }
         }
 
